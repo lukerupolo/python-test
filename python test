@@ -1,0 +1,38 @@
+from flask import Flask, request, jsonify
+import numpy as np
+import random
+
+app = Flask(__name__)
+
+# Define businesses
+businesses = {
+    'Pizza Restaurant': {'avg_cart_size': 20, 'std_dev': 5, 'sales_frequency': 10, 'tickets_issued': 0, 'tickets_redeemed': 0, 'min_spend': 25, 'unreciprocated_tickets': 0, 'redeemed_at_others': 0},
+    'Bar': {'avg_cart_size': 30, 'std_dev': 10, 'sales_frequency': 8, 'tickets_issued': 0, 'tickets_redeemed': 0, 'min_spend': 35, 'unreciprocated_tickets': 0, 'redeemed_at_others': 0},
+    'Fitness Studio': {'avg_cart_size': 50, 'std_dev': 15, 'sales_frequency': 5, 'tickets_issued': 0, 'tickets_redeemed': 0, 'min_spend': 60, 'unreciprocated_tickets': 0, 'redeemed_at_others': 0},
+    'Movie Cinema': {'avg_cart_size': 15, 'std_dev': 5, 'sales_frequency': 12, 'tickets_issued': 0, 'tickets_redeemed': 0, 'min_spend': 20, 'unreciprocated_tickets': 0, 'redeemed_at_others': 0}
+}
+
+@app.route('/redeem_ticket', methods=['POST'])
+def redeem_ticket():
+    data = request.json
+    business_name = data['business_name']
+    
+    # Simulate ticket redemption
+    if business_name in businesses:
+        business = businesses[business_name]
+        if business['tickets_issued'] > 0:
+            business['tickets_redeemed'] += 1
+            business['tickets_issued'] -= 1
+            # Refresh unreciprocated tickets mechanism
+            for b in businesses:
+                businesses[b]['unreciprocated_tickets'] = businesses[b]['tickets_issued'] - businesses[b]['redeemed_at_others']
+            return jsonify({'status': 'success', 'message': 'Ticket redeemed successfully', 'business': business_name})
+        else:
+            return jsonify({'status': 'error', 'message': 'No tickets available for redemption'})
+    else:
+        return jsonify({'status': 'error', 'message': 'Invalid business name'})
+
+if __name__ == '__main__':
+    app.run(debug=True)
+
+
